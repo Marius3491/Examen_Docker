@@ -1,0 +1,68 @@
+version: '3'
+
+services:
+  insect:
+    image: shion3491/insect2
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.insect.entrypoints=http"
+      - "traefik.http.routers.insect.rule=Host(`web.marin.internal`)"
+      - "traefik.http.routers.insect.rule=Path(`/`)"
+    
+  mariadb:
+    image: docker.io/bitnami/mariadb:11.1
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+      - MARIADB_USER=bn_moodle
+      - MARIADB_DATABASE=bitnami_moodle
+      - MARIADB_CHARACTER_SET=utf8mb4
+      - MARIADB_COLLATE=utf8mb4_unicode_ci
+    volumes:
+      - 'mariadb_data:/bitnami/mariadb'
+  moodle:
+    image: docker.io/bitnami/moodle:4.3
+    environment:
+      - MOODLE_DATABASE_HOST=mariadb
+      - MOODLE_DATABASE_PORT_NUMBER=3306
+      - MOODLE_DATABASE_USER=bn_moodle
+      - MOODLE_DATABASE_NAME=bitnami_moodle
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - 'moodle_data:/bitnami/moodle'
+      - 'moodledata_data:/bitnami/moodledata'
+    depends_on:
+      - mariadb
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.moodle.entrypoints=http"
+      - "traefik.http.routers.moodle.rule=Host(`moodle.marin.internal`)"
+    # - "traefik.http.routers.moodle.rule=Path(`/`)"
+      
+
+  reverse-proxy:
+    # The official v2 Traefik docker image
+    image: traefik:v2.10
+    # Enables the web UI and tells Traefik to listen to docker
+    command: 
+      - --api.insecure=true 
+      - --providers.docker 
+      - --providers.docker.exposedbydefault=false
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  mariadb_data:
+    driver: local
+  moodle_data:
+    driver: local
+  moodledata_data:
+    driver: local

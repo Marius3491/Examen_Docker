@@ -1,0 +1,7 @@
+docker run -dp 80:80 -v ./insect-game:/usr/share/nginx/html --name insect nginx
+docker exec -it nombre bash
+cd /usr/share/nginx/html
+ls 
+apt update
+apt install nano
+nano index.html

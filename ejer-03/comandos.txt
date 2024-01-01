@@ -1,0 +1,5 @@
+docker login -u casandrama
+docker tag insect2 casandrama/insect2
+docker push casandrama/insect2
+docker pull casandrama/insect2
+docker run -d -p 80:80 casandrama/insect2
