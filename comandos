@@ -1,0 +1,5 @@
+Comandos utiles para:
+
+Deinstalar completamente un servicio para evitar problemas:
+
+sudo apt purge NOMBRE_DE_APLICACION
